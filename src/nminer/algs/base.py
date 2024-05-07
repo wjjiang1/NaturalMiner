@@ -12,9 +12,8 @@ import time
 import torch
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from transformers import GPT2Tokenizer
-from trl.gpt2 import GPT2HeadWithValueModel, respond_to_batch
-from trl.ppo import PPOTrainer
+from trl import PPOTrainer, PPOConfig, AutoModelForCausalLMWithValueHead, create_reference_model
+from trl.core import respond_to_batch
 
 # Prepare extractive summarization
 mnli_tokenizer = AutoTokenizer.from_pretrained('roberta-large-mnli')
@@ -109,9 +108,9 @@ def gen_rl(timeout_s, **kwargs):
     Returns:
         Dictionary mapping summaries to quality values
     """
-    gpt2_tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-    gpt2_model = GPT2HeadWithValueModel.from_pretrained('gpt2')
-    gpt2_model_ref = GPT2HeadWithValueModel.from_pretrained('gpt2')
+    gpt2_tokenizer = AutoTokenizer.from_pretrained('gpt2')
+    gpt2_model = AutoModelForCausalLMWithValueHead.from_pretrained('gpt2')
+    gpt2_model_ref = create_reference_model(gpt2_model)
     
     ppo_config = {'batch_size': 1, 'forward_batch_size': 1}
     ppo_trainer = PPOTrainer(gpt2_model, gpt2_model_ref, **ppo_config)
@@ -128,6 +127,7 @@ def gen_rl(timeout_s, **kwargs):
         rt_to_q, _ = rand_sums(1, float('inf'), **r_params)
         
         rand_facts = list(rt_to_q.keys())[0]
+        print('RAND_FACTS:', rand_facts)
         if rand_facts is not None:
             prompt_pt = gpt2_tokenizer.encode(rand_facts, return_tensors="pt")        
             sum_pt = respond_to_batch(gpt2_model, prompt_pt)

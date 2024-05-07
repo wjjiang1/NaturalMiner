@@ -6,8 +6,9 @@ Created on Jul 23, 2021
 # imports
 import torch
 from transformers import GPT2Tokenizer
-from trl.gpt2 import GPT2HeadWithValueModel, respond_to_batch
-from trl.ppo import PPOTrainer
+# from trl.gpt2 import GPT2HeadWithValueModel, respond_to_batch
+# from trl.ppo import PPOTrainer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # get models
 gpt2_model = GPT2HeadWithValueModel.from_pretrained('gpt2')
